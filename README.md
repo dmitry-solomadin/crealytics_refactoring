@@ -11,13 +11,13 @@ matching, but code always supplied only 1 iterator so I've decided to remove it 
 combine_hashes and combine_values - were removed because of this change. I'm not sure that was correct change since
 I had no real data to test on.
 3. I think the purpose of this code is next:
-* It gets latest ad campaigns performance data on the project (there was a bug there actually)
-* Then it sorts that data by 'Clicks' column
-* If we had multiple data files then it would combine data from multiple files by 'Keyword Unique ID' and made some
+  * It gets latest ad campaigns performance data on the project (there was a bug there actually)
+  * Then it sorts that data by 'Clicks' column
+  * If we had multiple data files then it would combine data from multiple files by 'Keyword Unique ID' and made some
  manipulations based column, for certain columns it would've choosen just the last value for others - first
  but since code works only with single data file there is no data combining.
-* Then it will make modifications to certain columns multiplying them by different factors.
-* Finally it saves data into output file.
+  * Then it will make modifications to certain columns multiplying them by different factors.
+  * Finally it saves data into output file.
 So generally, what it does right now is pretty simple: sort, some columns * factors, save
 4. I might be mistaken in my initial assumptions, like I've said there is a risk a missed something, if that's the case
 then my refactoring is completely wrong, I justify that by having no means to test it on real data :)
