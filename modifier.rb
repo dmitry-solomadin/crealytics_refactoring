@@ -6,13 +6,6 @@ require_relative 'lib/core_extensions/float'
 
 class Modifier
 
-	KEYWORD_UNIQUE_ID = 'Keyword Unique ID'
-	LAST_VALUE_WINS = ['Account ID', 'Account Name', 'Campaign', 'Ad Group', 'Keyword', 'Keyword Type', 'Subid',
-                     'Paused', 'Max CPC', 'Keyword Unique ID', 'ACCOUNT', 'CAMPAIGN', 'BRAND', 'BRAND+CATEGORY',
-                     'ADGROUP', 'KEYWORD']
-	LAST_REAL_VALUE_WINS = ['Last Avg CPC', 'Last Avg Pos']
-	INT_VALUES = ['Clicks', 'Impressions', 'ACCOUNT - Clicks', 'CAMPAIGN - Clicks', 'BRAND - Clicks',
-                'BRAND+CATEGORY - Clicks', 'ADGROUP - Clicks', 'KEYWORD - Clicks']
 	FLOAT_VALUES = ['Avg CPC', 'CTR', 'Est EPC', 'newBid', 'Costs', 'Avg Pos']
   COMMISSION_VALUES = ['number of commissions']
   COMMISSION_VALUES_OTHER = ['Commission Value', 'ACCOUNT - Commission Value', 'CAMPAIGN - Commission Value',
@@ -46,15 +39,6 @@ class Modifier
   end
 
 	def combine_values(hash)
-		LAST_VALUE_WINS.each do |key|
-			hash[key] = hash[key]
-		end
-		LAST_REAL_VALUE_WINS.each do |key|
-			hash[key] = hash[key]
-		end
-		INT_VALUES.each do |key|
-			hash[key] = hash[key].to_s
-		end
 		FLOAT_VALUES.each do |key|
 			hash[key] = hash[key].from_german_to_f.to_german_s
 		end
