@@ -21,9 +21,7 @@ I had no real data to test on.
 So generally, what it does right now is pretty simple: sort, some columns * factors, save
 4. I might be mistaken in my initial assumptions, like I've said there is a risk a missed something, if that's the case
 then my refactoring is completely wrong, I justify that by having no means to test it on real data :)
-5. If I had more time I would've tried to remove multiple enumerators, while it makes code look neat, but it renders
-it less readable, I believe it could greatly simplified.
-6. If I had data files to work with initially I also would've used different approach to the refactoring process.
+5. If I had data files to work with initially I also would've used different approach to the refactoring process.
 I would've written tests on existing code first and then refactor it. But because I didn't know the input/output of the code.
 I had to debug it and it was much easier to do refactor along the way. Also writing tests prior to the refactoring w/o
 knowing input/output has no benefit since those tests would've been just my assumptions.
