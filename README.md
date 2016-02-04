@@ -1,4 +1,5 @@
 There are couple of things I would like to say about this task:
+
 1. Refactoring should not be done if you have no tests or no way of understanding what code does. If you'd
 supplied test file with the task then it would be ok, instead I had to guess what this code actually does and guess
 the format of the file. This task was very far off real world task and if I'd encounter a piece of code that

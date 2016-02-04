@@ -27,18 +27,18 @@ class Modifier
 	end
 
 	def modify(output, input)
-		input = sort_by_clicks(input)
+		input = write_sorted_by_clicks(input)
 
 		input_enumerator = CSVHelper.lazy_read(input)
 
     elements = input_enumerator.map { |el| combine_values(el.to_hash) }
 
-    write_file(elements, output)
+    write_output(elements, output)
 	end
 
 	private
 
-  def write_file(elements, output)
+  def write_output(elements, output)
     file_name = output.gsub('.txt', '')
     elements.each_slice(LINES_PER_FILE).with_index do |values, index|
       CSVHelper.write(values, elements.first.keys, file_name + "_#{index}.txt")
@@ -67,7 +67,7 @@ class Modifier
 		hash
 	end
 
-	def sort_by_clicks(file)
+	def write_sorted_by_clicks(file)
     output = "#{file}.sorted"
 		content_as_table = CSVHelper.parse(file)
 		headers = content_as_table.headers
