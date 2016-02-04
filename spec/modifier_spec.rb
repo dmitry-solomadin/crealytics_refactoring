@@ -4,14 +4,14 @@ require_relative '../modifier'
 # I could've put tests into single test, but I decided to go more granular strategy,
 # so when something breaks we get to what exactly gone wrong.
 describe Modifier do
-  let(:combiner) { Combiner.new(&key_extractor) }
-
   describe "#modify" do
 
     after(:each) do
       # Do cleanup after Modifier.modify
-      File.delete("spec/fixtures/output_0.txt")
-      File.delete("spec/fixtures/correct_input.txt.sorted")
+      spec_dir = "spec/fixtures/"
+      File.delete("#{spec_dir}output_0.txt") if File.exist?("#{spec_dir}output_0.txt")
+      File.delete("#{spec_dir}correct_input.txt.sorted") if File.exist?("#{spec_dir}correct_input.txt.sorted")
+      File.delete("#{spec_dir}incorrect_input.txt.sorted") if File.exist?("#{spec_dir}incorrect_input.txt.sorted")
     end
 
     context "when called with correct input data" do
@@ -82,5 +82,16 @@ describe Modifier do
       end
     end
 
+    context "when called with incorrect input data" do
+      let(:modifier) { Modifier.new(modification_factor: 0.5, cancellation_factor: 0.5) }
+      it "should still generate output files" do
+        input = "spec/fixtures/incorrect_input.txt"
+        output = "spec/fixtures/output.txt"
+        modifier.modify(output, input)
+
+        expect(File.exist?("spec/fixtures/output_0.txt")).to eq(true)
+        expect(File.exist?("spec/fixtures/incorrect_input.txt.sorted")).to eq(true)
+      end
+    end
   end
 end

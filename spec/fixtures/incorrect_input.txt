@@ -1,0 +1,4 @@
+Account ID	Account Name	Campaign	Ad Group	Keyword	Keyword Type
+a	a	a	a	a	a	a	a	a	ku	a	a	a	a	a	a	1	1	4	2	2	2	2	2	2	2	3.0	3.0	3.0	3.0	3.0	3.0	1	1	1	1	1	1	1	1
+a	a	a	a	a	a	a	a	a	ku	a	a	a	a	a	a	1	1	2	2	2	2	2	2	2	2	3.0	3.0	3.0	3.0	3.0	3.0	1	1	1	1	1	1	1	1
+a	a	a	a	a	a	a	a	a	ku1	a	a	a	a	a	a	1	1	10	2	2	2	2	2	2	2	3.0	3.0	3.0	3.0	3.0	3.0	1	1	1	1	1	1	1	1

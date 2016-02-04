@@ -40,13 +40,13 @@ class Modifier
 
 	def combine_values(hash)
 		FLOAT_VALUES.each do |key|
-			hash[key] = hash[key].from_german_to_f.to_german_s
+			hash[key] = hash[key].from_german_to_f.to_german_s if hash[key]
 		end
     COMMISSION_VALUES.each do |key|
-			hash[key] = (@cancellation_factor * hash[key].from_german_to_f).to_german_s
+			hash[key] = (@cancellation_factor * hash[key].from_german_to_f).to_german_s if hash[key]
 		end
     COMMISSION_VALUES_OTHER.each do |key|
-			hash[key] = (@cancellation_factor * @modification_factor * hash[key].from_german_to_f).to_german_s
+			hash[key] = (@cancellation_factor * @modification_factor * hash[key].from_german_to_f).to_german_s if hash[key]
 		end
 		hash
 	end
