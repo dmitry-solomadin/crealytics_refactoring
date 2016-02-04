@@ -1,27 +1,23 @@
-require File.expand_path('lib/combiner',File.dirname(__FILE__))
-require_relative 'lib/performance_data_reader'
-require 'csv'
-require 'date'
-
-class String
-	def from_german_to_f
-		self.gsub(',', '.').to_f
-	end
-end
-
-class Float
-	def to_german_s
-		self.to_s.gsub('.', ',')
-	end
-end
+require_relative 'lib/combiner'
+require_relative 'lib/performance_data_getter'
+require_relative 'lib/csv_helper'
+require_relative 'lib/core_extensions/string'
+require_relative 'lib/core_extensions/float'
 
 class Modifier
 
 	KEYWORD_UNIQUE_ID = 'Keyword Unique ID'
-	LAST_VALUE_WINS = ['Account ID', 'Account Name', 'Campaign', 'Ad Group', 'Keyword', 'Keyword Type', 'Subid', 'Paused', 'Max CPC', 'Keyword Unique ID', 'ACCOUNT', 'CAMPAIGN', 'BRAND', 'BRAND+CATEGORY', 'ADGROUP', 'KEYWORD']
+	LAST_VALUE_WINS = ['Account ID', 'Account Name', 'Campaign', 'Ad Group', 'Keyword', 'Keyword Type', 'Subid',
+                     'Paused', 'Max CPC', 'Keyword Unique ID', 'ACCOUNT', 'CAMPAIGN', 'BRAND', 'BRAND+CATEGORY',
+                     'ADGROUP', 'KEYWORD']
 	LAST_REAL_VALUE_WINS = ['Last Avg CPC', 'Last Avg Pos']
-	INT_VALUES = ['Clicks', 'Impressions', 'ACCOUNT - Clicks', 'CAMPAIGN - Clicks', 'BRAND - Clicks', 'BRAND+CATEGORY - Clicks', 'ADGROUP - Clicks', 'KEYWORD - Clicks']
+	INT_VALUES = ['Clicks', 'Impressions', 'ACCOUNT - Clicks', 'CAMPAIGN - Clicks', 'BRAND - Clicks',
+                'BRAND+CATEGORY - Clicks', 'ADGROUP - Clicks', 'KEYWORD - Clicks']
 	FLOAT_VALUES = ['Avg CPC', 'CTR', 'Est EPC', 'newBid', 'Costs', 'Avg Pos']
+  COMMISSION_VALUES = ['number of commissions']
+  COMMISSION_VALUES_OTHER = ['Commission Value', 'ACCOUNT - Commission Value', 'CAMPAIGN - Commission Value',
+                             'BRAND - Commission Value', 'BRAND+CATEGORY - Commission Value',
+                             'ADGROUP - Commission Value', 'KEYWORD - Commission Value']
 
   LINES_PER_FILE = 120000
 
@@ -31,13 +27,14 @@ class Modifier
 	end
 
 	def modify(output, input)
-		input = sort(input)
+		input = sort_by_clicks(input)
 
-		input_enumerator = lazy_read(input)
+		input_enumerator = CSVHelper.lazy_read(input)
 
+    # TODO: Not sure we need that at all
 		combiner = Combiner.new do |value|
 			value[KEYWORD_UNIQUE_ID]
-		end.combine(input_enumerator)
+    end.combine(input_enumerator)
 
 		merger = Enumerator.new do |yielder|
 			while true
@@ -49,44 +46,40 @@ class Modifier
 					break
 				end
 			end
-		end
-
-    done = false
-    file_index = 0
-    file_name = output.gsub('.txt', '')
-    while not done do
-		  CSV.open(file_name + "_#{file_index}.txt", "wb", { :col_sep => "\t", :headers => :first_row, :row_sep => "\r\n" }) do |csv|
-			  headers_written = false
-        line_count = 0
-			  while line_count < LINES_PER_FILE
-				  begin
-					  merged = merger.next
-					  if not headers_written
-						  csv << merged.keys
-						  headers_written = true
-              line_count +=1
-					  end
-					  csv << merged
-            line_count +=1
-				  rescue StopIteration
-            done = true
-					  break
-				  end
-			  end
-        file_index += 1
-		  end
     end
+
+    write_file(merger, output)
 	end
 
 	private
 
-	def combine(merged)
-		result = []
-		merged.each do |_, hash|
-			result << combine_values(hash)
-		end
-		result
-	end
+  def write_file(merger, output)
+    done = false
+    file_index = 0
+    file_name = output.gsub('.txt', '')
+    while !done do
+      CSV.open(file_name + "_#{file_index}.txt", "wb", { :col_sep => "\t", :headers => :first_row, :row_sep => "\r\n" }) do |csv|
+        headers_written = false
+        line_count = 0
+        while line_count < LINES_PER_FILE
+          begin
+            merged = merger.next
+            unless headers_written
+              csv << merged.keys
+              headers_written = true
+              line_count += 1
+            end
+            csv << merged
+            line_count += 1
+          rescue StopIteration
+            done = true
+            break
+          end
+        end
+        file_index += 1
+      end
+    end
+  end
 
 	def combine_values(hash)
 		LAST_VALUE_WINS.each do |key|
@@ -101,10 +94,10 @@ class Modifier
 		FLOAT_VALUES.each do |key|
 			hash[key] = hash[key][0].from_german_to_f.to_german_s
 		end
-		['number of commissions'].each do |key|
+    COMMISSION_VALUES.each do |key|
 			hash[key] = (@cancellation_factor * hash[key][0].from_german_to_f).to_german_s
 		end
-		['Commission Value', 'ACCOUNT - Commission Value', 'CAMPAIGN - Commission Value', 'BRAND - Commission Value', 'BRAND+CATEGORY - Commission Value', 'ADGROUP - Commission Value', 'KEYWORD - Commission Value'].each do |key|
+    COMMISSION_VALUES_OTHER.each do |key|
 			hash[key] = (@cancellation_factor * @saleamount_factor * hash[key][0].from_german_to_f).to_german_s
 		end
 		hash
@@ -128,47 +121,23 @@ class Modifier
 		result
 	end
 
-	DEFAULT_CSV_OPTIONS = { :col_sep => "\t", :headers => :first_row }
-
-	def parse(file)
-		CSV.read(file, DEFAULT_CSV_OPTIONS)
-	end
-
-	def lazy_read(file)
-		Enumerator.new do |yielder|
-			CSV.foreach(file, DEFAULT_CSV_OPTIONS) do |row|
-				yielder.yield(row)
-			end
-		end
-	end
-
-	def write(content, headers, output)
-		CSV.open(output, "wb", { :col_sep => "\t", :headers => :first_row, :row_sep => "\r\n" }) do |csv|
-			csv << headers
-			content.each do |row|
-				csv << row
-			end
-		end
-	end
-
-	public
-	def sort(file)
-		output = "#{file}.sorted"
-		content_as_table = parse(file)
+	def sort_by_clicks(file)
+    output = "#{file}.sorted"
+		content_as_table = CSVHelper.parse(file)
 		headers = content_as_table.headers
 		index_of_key = headers.index('Clicks')
 		content = content_as_table.sort_by { |a| -a[index_of_key].to_i }
-		write(content, headers, output)
-		return output
+		CSVHelper.write(content, headers, output)
+    output
 	end
 end
 
 # Note: un-refactored code had a bug when the file with strict data was rendered
 # I've fixed it by reading actually latest data file for project.
-modified = input = PerformanceDataReader.latest_for_project('project_2012-07-27_*')
+modified = input = PerformanceDataGetter.latest_for_project('project_2012-07-27_*')
 modification_factor = 1
-cancellaction_factor = 0.4
-modifier = Modifier.new(modification_factor, cancellaction_factor)
+cancellation_factor = 0.4
+modifier = Modifier.new(modification_factor, cancellation_factor)
 modifier.modify(modified, input)
 
 puts "DONE modifying"

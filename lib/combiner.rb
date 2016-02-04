@@ -17,6 +17,7 @@ class Combiner
 	def combine(*enumerators)
 		Enumerator.new do |yielder|
 			last_values = Array.new(enumerators.size)
+
 			done = enumerators.all? { |enumerator| enumerator.nil? }
 			while not done
 				last_values.each_with_index do |value, index|
@@ -27,7 +28,7 @@ class Combiner
 							enumerators[index] = nil
 						end
 					end
-				end
+        end
 
 				done = enumerators.all? { |enumerator| enumerator.nil? } and last_values.compact.empty?
 				unless done
@@ -48,7 +49,7 @@ class Combiner
 							values[index] = value
 							last_values[index] = nil
 						end
-					end
+          end
 					yielder.yield(values)
 				end
 			end
